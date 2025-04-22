@@ -7,7 +7,7 @@ import scala.reflect.macros.blackbox
 import zio.ZIO
 import zio.IsSubtypeOfOutput
 
-final class ZLayerMakeMacros(val c: blackbox.Context) extends LayerMacroUtils {
+final class ZLayerMakeMacros(val c: blackbox.Context) extends LayerMacroUtils[blackbox.Context] {
   import c.universe._
 
   def makeImpl[

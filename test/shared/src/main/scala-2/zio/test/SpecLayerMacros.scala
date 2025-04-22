@@ -7,7 +7,7 @@ import zio.internal.macros.ProvideMethod.Provide
 
 import scala.reflect.macros.blackbox
 
-class SpecLayerMacros(val c: blackbox.Context) extends LayerMacroUtils {
+class SpecLayerMacros(val c: blackbox.Context) extends LayerMacroUtils[blackbox.Context] {
 
   type ZSpec[-R, +E, +T] = Spec[R, E]
 
@@ -26,20 +26,20 @@ class SpecLayerMacros(val c: blackbox.Context) extends LayerMacroUtils {
   ): c.Expr[Spec[R0, E]] =
     provideBaseImpl[ZSpec, R0, R, E, TestSuccess](layer, "provideSomeLayerShared", ProvideMethod.ProvideSomeShared)
 
-  def validate[Provided: c.WeakTypeTag, Required: c.WeakTypeTag](spec: c.Tree): c.Tree = {
-
-    val required = getRequirements[Required]
-    val provided = getRequirements[Provided]
-
-    val missing =
-      required.toSet -- provided.toSet
-
-    if (missing.nonEmpty) {
-      val message = TerminalRendering.missingLayersForZIOSpec(missing.map(_.toString))
-      c.abort(c.enclosingPosition, message)
-    }
-
-    spec
-  }
+//  def validate[Provided: c.WeakTypeTag, Required: c.WeakTypeTag](spec: c.Tree): c.Tree = {
+//
+//    val required = getRequirements[Required]
+//    val provided = getRequirements[Provided]
+//
+//    val missing =
+//      required.toSet -- provided.toSet
+//
+//    if (missing.nonEmpty) {
+//      val message = TerminalRendering.missingLayersForZIOSpec(missing.map(_.toString))
+//      c.abort(c.enclosingPosition, message)
+//    }
+//
+//    spec
+//  }
 
 }

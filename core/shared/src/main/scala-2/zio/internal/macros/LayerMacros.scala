@@ -6,7 +6,7 @@ import zio.internal.ansi.AnsiStringOps
 
 import scala.reflect.macros.blackbox
 
-private[zio] class LayerMacros(val c: blackbox.Context) extends LayerMacroUtils {
+private[zio] class LayerMacros(val c: blackbox.Context) extends LayerMacroUtils[blackbox.Context] {
   import c.universe._
 
   def validate[Provided: WeakTypeTag, Required: WeakTypeTag](zio: c.Tree): c.Tree = {
