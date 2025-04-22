@@ -1,7 +1,7 @@
 package zio.test
 
 import zio._
-import zio.test.Assertion._
+//import zio.test.Assertion._
 import zio.test.TestProvideSpecTypes.{IntService, StringService}
 
 object TestProvideAutoSpec extends ZIOBaseSpec {

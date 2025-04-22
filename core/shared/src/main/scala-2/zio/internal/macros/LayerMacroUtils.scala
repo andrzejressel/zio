@@ -127,7 +127,7 @@ private[zio] trait LayerMacroUtils[C <: scala.reflect.macros.blackbox.Context] {
     c.Expr[ZLayer[R0, E, R]](builder.build.tree)
   }
 
-  def constructLayerAuto[R: WeakTypeTag, R0: WeakTypeTag, E](
+  def constructLayerAuto[R: WeakTypeTag, E](
     layers: Seq[LayerExpr],
     provideMethod: ProvideMethod
   ): Expr[ZLayer[_, E, R]] = {
@@ -145,7 +145,7 @@ private[zio] trait LayerMacroUtils[C <: scala.reflect.macros.blackbox.Context] {
 
     def typeToNode(tpe: Type): Node[Type, LayerExpr] = {
       usesEnvironment = true
-      Node(Nil, List(tpe), c.Expr(q"${reify(ZLayer)}.environment[$tpe]($trace)"))
+      Node(Nil, List(tpe), c.Expr[ZLayer[_, _, _]](q"${reify(ZLayer)}.environment[$tpe]($trace)"))
     }
 
     def buildFinalTree(tree: LayerTree[LayerExpr]): LayerExpr = {
@@ -159,12 +159,12 @@ private[zio] trait LayerMacroUtils[C <: scala.reflect.macros.blackbox.Context] {
         z = reify(ZLayer.unit),
         value = memoList.toMap,
         composeH = {
-          case (lhs, Expr(rhs: Ident)) => c.Expr(q"$lhs ++ $rhs")
-          case (lhs, rhs)              => c.Expr(q"$lhs +!+ $rhs")
+          case (lhs, Expr(rhs: Ident)) => c.Expr[ZLayer[_, _, _]](q"$lhs ++ $rhs")
+          case (lhs, rhs)              => c.Expr[ZLayer[_, _, _]](q"$lhs +!+ $rhs")
         },
         composeV = (lhs, rhs) => {
           usesCompose = true
-          c.Expr(q"$compose($lhs, $rhs)")
+          c.Expr[ZLayer[_, _, _]](q"$compose($lhs, $rhs)")
         }
       )
 
@@ -190,7 +190,7 @@ private[zio] trait LayerMacroUtils[C <: scala.reflect.macros.blackbox.Context] {
         Nil
       }
 
-      c.Expr(q"""
+      c.Expr[ZLayer[_, _, _]](q"""
         ..$traceVal
         ..$composeDef
         ..$definitions
@@ -234,8 +234,9 @@ private[zio] trait LayerMacroUtils[C <: scala.reflect.macros.blackbox.Context] {
     method: String,
     provideMethod: ProvideMethod
   ): Expr[F[_, E, A]] = {
-    val expr = constructLayerAuto[R, Any, E](layers, provideMethod)
-    c.Expr[F[_, E, A]](q"${c.prefix}.${TermName(method)}($expr)")
+    val expr = constructLayerAuto[R, E](layers, provideMethod)
+    val tree = c.typecheck(q"${c.prefix}.${TermName(method)}($expr)")  // Ensure the tree is type-checked
+    c.Expr[F[_, E, A]](tree)
   }
 
   /**
