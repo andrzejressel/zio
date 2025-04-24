@@ -24,22 +24,26 @@ class SpecLayerMacros(val c: blackbox.Context) extends LayerMacroUtils[blackbox.
   def provideSomeSharedImpl[R0: c.WeakTypeTag, R: c.WeakTypeTag, E](
     layer: c.Expr[ZLayer[_, E, _]]*
   ): c.Expr[Spec[R0, E]] =
-    provideBaseImpl[ZSpec, R0, R, E, TestSuccess](layer, "provideSomeLayerShared", ProvideMethod.ProvideSomeShared)
+    {
+      val t = provideBaseImpl[ZSpec, R0, R, E, TestSuccess](layer, "provideSomeLayerShared", ProvideMethod.ProvideSomeShared)
+//      c.abort(c.enclosingPosition, s"tree: ${t.tree}")
+      t
+    }
 
-//  def validate[Provided: c.WeakTypeTag, Required: c.WeakTypeTag](spec: c.Tree): c.Tree = {
-//
-//    val required = getRequirements[Required]
-//    val provided = getRequirements[Provided]
-//
-//    val missing =
-//      required.toSet -- provided.toSet
-//
-//    if (missing.nonEmpty) {
-//      val message = TerminalRendering.missingLayersForZIOSpec(missing.map(_.toString))
-//      c.abort(c.enclosingPosition, message)
-//    }
-//
-//    spec
-//  }
+  def validate[Provided: c.WeakTypeTag, Required: c.WeakTypeTag](spec: c.Tree): c.Tree = {
+
+    val required = getRequirements[Required]
+    val provided = getRequirements[Provided]
+
+    val missing =
+      required.toSet -- provided.toSet
+
+    if (missing.nonEmpty) {
+      val message = TerminalRendering.missingLayersForZIOSpec(missing.map(_.toString))
+      c.abort(c.enclosingPosition, message)
+    }
+
+    spec
+  }
 
 }

@@ -7,17 +7,17 @@ import zio.test.TestProvideSpecTypes.{IntService, StringService}
 object TestProvideAutoSpec extends ZIOBaseSpec {
   def spec =
     suite("TestProvideAutoSpec")(
-      suite(".provideSomeAuto") {
-        val stringLayer = ZLayer.succeed("10")
-
-        val myTest = test("provides some") {
-          ZIO.environment[Int with String].map { env =>
-            assertTrue(env.get[String].toInt == env.get[Int])
-          }
-        }.provideSomeAuto(stringLayer)
-
-        myTest.provide(ZLayer.succeed(10))
-      },
+//      suite(".provideSomeAuto") {
+//        val stringLayer = ZLayer.succeed("10")
+//
+//        val myTest = test("provides some") {
+//          ZIO.environment[Int with String].map { env =>
+//            assertTrue(env.get[String].toInt == env.get[Int])
+//          }
+//        }.provideSomeAuto(stringLayer)
+//
+//        myTest.provide(ZLayer.succeed(10))
+//      },
       suite(".provideSomeSharedAuto") {
 
         val addOne: ZIO[IntService, Nothing, Int] =

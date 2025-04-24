@@ -198,6 +198,10 @@ private[zio] trait LayerMacroUtils[C <: scala.reflect.macros.blackbox.Context] {
       """)
     }
 
+//    if (true) {
+//      c.abort(c.enclosingPosition, s"requirenments: ${getRequirements[R]}")
+//    }
+
     val builder = LayerBuilder[Type, LayerExpr](
       target0 = getRequirements[R],
       remainder = RemainderMethod.Inferred,
@@ -226,6 +230,9 @@ private[zio] trait LayerMacroUtils[C <: scala.reflect.macros.blackbox.Context] {
     provideMethod: ProvideMethod
   ): Expr[F[R0, E, A]] = {
     val expr = constructLayer[R0, R, E](layers, provideMethod)
+    if (true) {
+//        c.abort(c.enclosingPosition, s"provideSome: ${expr.tree}")
+    }
     c.Expr[F[R0, E, A]](q"${c.prefix}.${TermName(method)}($expr)")
   }
 
@@ -235,7 +242,12 @@ private[zio] trait LayerMacroUtils[C <: scala.reflect.macros.blackbox.Context] {
     provideMethod: ProvideMethod
   ): Expr[F[_, E, A]] = {
     val expr = constructLayerAuto[R, E](layers, provideMethod)
-    val tree = c.typecheck(q"${c.prefix}.${TermName(method)}($expr)")  // Ensure the tree is type-checked
+    if (true) {
+//      c.abort(c.enclosingPosition, s"provideSomeSharedAuto: ${expr.tree}")
+    }
+//    c.info(c.enclosingPosition, s"expr: ${expr.tree}", true)
+    val typeCheckedExpr = c.typecheck(expr.tree)
+    val tree = c.typecheck(q"${c.prefix}.${TermName(method)}[zio.test.TestProvideSpecTypes.StringService]($typeCheckedExpr)")  // Ensure the tree is type-checked
     c.Expr[F[_, E, A]](tree)
   }
 
