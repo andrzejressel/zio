@@ -63,11 +63,9 @@ final case class LayerBuilder[Type, Expr](
   reportError: String => Nothing
 ) {
 
-  private lazy val target =
+  lazy val target =
     if (method.isProvideSomeShared) target0.filterNot(t1 => remainder.providedTypes.exists(t2 => typeEquals(t1, t2)))
     else target0
-
-  private val trueRemainder: mutable.Buffer[Type] = remainder.providedTypes.to(mutable.Buffer)
 
   private lazy val remainderNodes: List[Node[Type, Expr]] =
     remainder.providedTypes.map(typeToNode).distinct
@@ -105,10 +103,7 @@ final case class LayerBuilder[Type, Expr](
 
     val remainderTypeFactory = remainder match {
       case RemainderMethod.Provided(_) => (_: Type) => None
-      case RemainderMethod.Inferred    => (t: Type) => {
-        trueRemainder.addOne(t)
-        Some(typeToNode(t))
-      }
+      case RemainderMethod.Inferred    => (t: Type) => Some(typeToNode(t))
     }
 
     /**
@@ -121,13 +116,9 @@ final case class LayerBuilder[Type, Expr](
       val graph                         = Graph(nodes, typeEquals, remainderTypeFactory)
 
       for {
-        _           <- graph.buildComplete(target)
+        original    <- graph.buildComplete(target)
         sideEffects <- graph.buildNodes(sideEffectNodes)
-        target =
-          if (method.isProvideSomeShared) target0.filterNot(t1 => trueRemainder.exists(t2 => typeEquals(t1, t2)))
-          else target0
-        original2 <- graph.buildComplete(target)
-      } yield sideEffects ++ original2
+      } yield sideEffects ++ original
     }
 
     layerTreeEither match {
