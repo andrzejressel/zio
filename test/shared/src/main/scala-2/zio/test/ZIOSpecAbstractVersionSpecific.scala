@@ -9,7 +9,7 @@ private[test] trait ZIOSpecAbstractVersionSpecific {
    * If it is missing requirements, it will report a descriptive error message.
    * Otherwise, the effect will be returned unmodified.
    */
-//  implicit def validateEnv[R1, R, E](spec: Spec[R, E]): Spec[R1, E] =
-//    macro SpecLayerMacros.validate[R1, R]
+  implicit def validateEnv[R1, R, E](spec: Spec[R, E]): Spec[R1, E] =
+    macro SpecLayerMacros.validate[R1, R]
 
 }

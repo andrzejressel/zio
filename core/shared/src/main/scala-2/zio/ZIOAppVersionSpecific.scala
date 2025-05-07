@@ -9,7 +9,7 @@ private[zio] trait ZIOAppVersionSpecific {
    * If it is missing requirements, it will report a descriptive error message.
    * Otherwise, the effect will be returned unmodified.
    */
-//  implicit def validateEnv[R1, R, E, A](zio: ZIO[R, E, A]): ZIO[R1, E, A] =
-//    macro internal.macros.LayerMacros.validate[R1, R]
+  implicit def validateEnv[R1, R, E, A](zio: ZIO[R, E, A]): ZIO[R1, E, A] =
+    macro internal.macros.LayerMacros.validate[R1, R]
 
 }
