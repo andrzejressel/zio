@@ -35,102 +35,20 @@ private[zio] trait LayerMacroUtils[C <: scala.reflect.macros.blackbox.Context] {
   private def isByName(tpe: Type): Boolean =
     tpe.typeSymbol.isClass && tpe.typeSymbol.asClass == definitions.ByNameParamClass
 
-  def constructLayer[R0: WeakTypeTag, R: WeakTypeTag, E](
+  protected def constructLayer[R0: WeakTypeTag, R: WeakTypeTag, E](
     layers: Seq[LayerExpr],
     provideMethod: ProvideMethod
-  ): Expr[ZLayer[R0, E, R]] = {
-    verifyLayers(layers)
-    val debug = typeOf[ZLayer.Debug.type].termSymbol
-    val debugMap: PartialFunction[LayerExpr, ZLayer.Debug] = {
-      case Expr(q"$prefix.tree") if prefix.symbol == debug    => ZLayer.Debug.Tree
-      case Expr(q"$prefix.mermaid") if prefix.symbol == debug => ZLayer.Debug.Mermaid
-    }
-
-    val trace           = c.freshName(TermName("trace"))
-    val compose         = c.freshName(TermName("compose"))
-    var usesEnvironment = false
-    var usesCompose     = false
-
-    def typeToNode(tpe: Type): Node[Type, LayerExpr] = {
-      usesEnvironment = true
-      Node(Nil, List(tpe), c.Expr(q"${reify(ZLayer)}.environment[$tpe]($trace)"))
-    }
-
-    def buildFinalTree(tree: LayerTree[LayerExpr]): LayerExpr = {
-      val memoList: List[(LayerExpr, LayerExpr)] =
-        tree.toList.map(_ -> c.Expr[ZLayer[_, _, _]](q"${c.freshName(TermName("layer"))}"))
-      val definitions = memoList.map { case (expr, memoizedNode) =>
-        q"val ${TermName(memoizedNode.tree.toString)} = $expr"
-      }
-
-      val layerExpr = tree.fold[LayerExpr](
-        z = reify(ZLayer.unit),
-        value = memoList.toMap,
-        composeH = {
-          case (lhs, Expr(rhs: Ident)) => c.Expr(q"$lhs ++ $rhs")
-          case (lhs, rhs)              => c.Expr(q"$lhs +!+ $rhs")
-        },
-        composeV = (lhs, rhs) => {
-          usesCompose = true
-          c.Expr(q"$compose($lhs, $rhs)")
-        }
-      )
-
-      val traceVal = if (usesEnvironment || usesCompose) {
-        List(q"val $trace = ${reify(Predef)}.implicitly[${typeOf[Trace]}]")
-      } else {
-        Nil
-      }
-
-      val composeDef = if (usesCompose) {
-        val ZLayer = typeOf[ZLayer[_, _, _]].typeSymbol
-        val R      = c.freshName(TypeName("R"))
-        val E      = c.freshName(TypeName("E"))
-        val O1     = c.freshName(TypeName("O1"))
-        val O2     = c.freshName(TypeName("O2"))
-        List(q"""
-          def $compose[$R, $E, $O1, $O2](
-            lhs: $ZLayer[$R, $E, $O1],
-            rhs: $ZLayer[$O1, $E, $O2]
-          ) = lhs.>>>(rhs)($trace)
-        """)
-      } else {
-        Nil
-      }
-
-      c.Expr(q"""
-        ..$traceVal
-        ..$composeDef
-        ..$definitions
-        $layerExpr
-      """)
-    }
-
-    val builder = LayerBuilder[Type, LayerExpr](
-      target0 = getRequirements[R],
-      remainder = RemainderMethod.Provided(getRequirements[R0]),
-      providedLayers0 = layers.toList,
-      layerToDebug = debugMap,
-      sideEffectType = definitions.UnitTpe,
-      anyType = definitions.AnyTpe,
-      typeEquals = _ <:< _,
-      foldTree = buildFinalTree,
-      method = provideMethod,
-      exprToNode = getNode,
-      typeToNode = typeToNode,
-      showExpr = expr => CleanCodePrinter.show(c)(expr.tree),
-      showType = _.toString,
-      reportWarn = c.warning(c.enclosingPosition, _),
-      reportError = c.abort(c.enclosingPosition, _)
-    )
-
-    c.Expr[ZLayer[R0, E, R]](builder.build.tree)
+  ): c.Expr[ZLayer[R0, E, R]] = {
+    val remainderMethod = RemainderMethod.Provided(getRequirements[R0])
+    val tree            = constructLayerTree[R](layers, provideMethod, remainderMethod)
+    c.Expr[ZLayer[R0, E, R]](tree)
   }
 
-  def constructLayerAuto[R: WeakTypeTag, E](
+  private def constructLayerTree[R: WeakTypeTag](
     layers: Seq[LayerExpr],
-    provideMethod: ProvideMethod
-  ): Expr[ZLayer[_, E, R]] = {
+    provideMethod: ProvideMethod,
+    remainderMethod: RemainderMethod[Type]
+  ): Tree = {
     verifyLayers(layers)
     val debug = typeOf[ZLayer.Debug.type].termSymbol
     val debugMap: PartialFunction[LayerExpr, ZLayer.Debug] = {
@@ -198,13 +116,9 @@ private[zio] trait LayerMacroUtils[C <: scala.reflect.macros.blackbox.Context] {
       """)
     }
 
-//    if (true) {
-//      c.abort(c.enclosingPosition, s"requirenments: ${getRequirements[R]}")
-//    }
-
     val builder = LayerBuilder[Type, LayerExpr](
       target0 = getRequirements[R],
-      remainder = RemainderMethod.Inferred,
+      remainder = remainderMethod,
       providedLayers0 = layers.toList,
       layerToDebug = debugMap,
       sideEffectType = definitions.UnitTpe,
@@ -220,20 +134,16 @@ private[zio] trait LayerMacroUtils[C <: scala.reflect.macros.blackbox.Context] {
       reportError = c.abort(c.enclosingPosition, _)
     )
 
-    c.Expr[ZLayer[_, E, R]](builder.build.tree)
+    builder.build.tree
   }
-
 
   def provideBaseImpl[F[_, _, _], R0: WeakTypeTag, R: WeakTypeTag, E, A](
     layers: Seq[LayerExpr],
     method: String,
     provideMethod: ProvideMethod
   ): Expr[F[R0, E, A]] = {
-    val expr = constructLayer[R0, R, E](layers, provideMethod)
-    if (true) {
-//        c.abort(c.enclosingPosition, s"provideSome: ${expr.tree}")
-    }
-    c.Expr[F[R0, E, A]](q"${c.prefix}.${TermName(method)}($expr)")
+    val tree = constructLayerTree[R](layers, provideMethod, RemainderMethod.Provided(getRequirements[R0]))
+    c.Expr[F[R0, E, A]](q"${c.prefix}.${TermName(method)}($tree)")
   }
 
   def provideBaseAutoImpl[F[_, _, _], R: WeakTypeTag, E, A](
@@ -241,14 +151,10 @@ private[zio] trait LayerMacroUtils[C <: scala.reflect.macros.blackbox.Context] {
     method: String,
     provideMethod: ProvideMethod
   ): Expr[F[_, E, A]] = {
-    val expr = constructLayerAuto[R, E](layers, provideMethod)
-    if (true) {
-//      c.abort(c.enclosingPosition, s"provideSomeSharedAuto: ${expr.tree}")
-    }
-//    c.info(c.enclosingPosition, s"expr: ${expr.tree}", true)
-    val typeCheckedExpr = c.typecheck(expr.tree)
-    val tree = c.typecheck(q"${c.prefix}.${TermName(method)}[zio.test.TestProvideSpecTypes.StringService]($typeCheckedExpr)")  // Ensure the tree is type-checked
-    c.Expr[F[_, E, A]](tree)
+    val tree = constructLayerTree[R](layers, provideMethod, RemainderMethod.Inferred)
+    c.Expr[F[_, E, A]](
+      c.typecheck(q"${c.prefix}.${TermName(method)}($tree)")
+    ) // Ensure the tree is type-checked. This seems to be required for whitebox macros.
   }
 
   /**

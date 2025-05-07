@@ -129,9 +129,9 @@ When using `ZIO#provideSome[R0]`, we should provide the remaining type as `R0` t
 
 ## Using `ZIO#provideSomeAuto` Method
 
-In Scala 3 enhanced version of `ZIO#provideSome` is introduced. The `ZIO#provideSomeAuto` method automatically infers the remaining type of the effect.
+`ZIO#provideSomeAuto` is experimental version of `ZIO#provideSome` that automatically infers the remaining type of the effect.
 
-```scala
+```scala mdoc:compile-only
 val mainEffectSomeAuto =
   myApp.provideSomeAuto(FooLive.layer) // No need to provide `Bar` anywhere
 ```

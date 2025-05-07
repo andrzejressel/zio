@@ -11,14 +11,12 @@ class SpecLayerWhiteboxMacros(val c: whitebox.Context) extends LayerMacroUtils[w
 
   def provideSomeAutoImpl[R: c.WeakTypeTag, E](
     layer: c.Expr[ZLayer[_, E, _]]*
-  ): c.Expr[Spec[_, E]] = {
+  ): c.Expr[Spec[_, E]] =
     provideBaseAutoImpl[ZSpec, R, E, TestSuccess](layer, "provideSomeLayer", ProvideMethod.ProvideSome)
-  }
 
   def provideSomeSharedAutoImpl[R: c.WeakTypeTag, E](
     layer: c.Expr[ZLayer[_, E, _]]*
-  ): c.Expr[Spec[_, E]] = {
+  ): c.Expr[Spec[_, E]] =
     provideBaseAutoImpl[ZSpec, R, E, TestSuccess](layer, "provideSomeLayerShared", ProvideMethod.ProvideSomeShared)
-  }
 
 }

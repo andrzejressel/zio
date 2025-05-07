@@ -1941,6 +1941,18 @@ object ZIOSpec extends ZIOBaseSpec {
         } yield assert(res._1)(equalTo(List(0, 2, 4, 6, 8))) && assert(res._2)(equalTo(List(1, 3, 5, 7, 9)))
       } @@ zioTag(errors)
     ),
+    test("provideSome") {
+      val clockLayer: ZLayer[Any, Nothing, Clock]    = ZLayer.succeed(Clock.ClockLive)
+      val zio: ZIO[Clock with Random, Nothing, Unit] = ZIO.unit
+      val _: ZIO[Random, Nothing, Unit]              = zio.provideSome[Random](clockLayer)
+      assertCompletes
+    },
+    test("provideSomeAuto") {
+      val clockLayer: ZLayer[Any, Nothing, Clock]    = ZLayer.succeed(Clock.ClockLive)
+      val zio: ZIO[Clock with Random, Nothing, Unit] = ZIO.unit
+      val _: ZIO[Random, Nothing, Unit]              = zio.provideSomeAuto(clockLayer)
+      assertCompletes
+    },
     test("provideSomeLayer") {
       for {
         ref    <- Ref.make(0)

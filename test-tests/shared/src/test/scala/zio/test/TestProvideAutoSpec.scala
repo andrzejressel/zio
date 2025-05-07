@@ -1,58 +1,21 @@
 package zio.test
 
 import zio._
-//import zio.test.Assertion._
-import zio.test.TestProvideSpecTypes.{IntService, StringService}
 
 object TestProvideAutoSpec extends ZIOBaseSpec {
   def spec =
     suite("TestProvideAutoSpec")(
-//      suite(".provideSomeAuto") {
-//        val stringLayer = ZLayer.succeed("10")
-//
-//        val myTest = test("provides some") {
-//          ZIO.environment[Int with String].map { env =>
-//            assertTrue(env.get[String].toInt == env.get[Int])
-//          }
-//        }.provideSomeAuto(stringLayer)
-//
-//        myTest.provide(ZLayer.succeed(10))
-//      },
-      suite(".provideSomeSharedAuto") {
+      suite(".provideSomeAuto") {
+        val stringLayer = ZLayer.succeed("10")
 
-        val addOne: ZIO[IntService, Nothing, Int] =
-          ZIO.serviceWithZIO[IntService](_.add(1))
-
-        val appendBang: ZIO[StringService, Nothing, String] =
-          ZIO.serviceWithZIO[StringService](_.append("!"))
-
-        val intService: ULayer[IntService] = ZLayer(Ref.make(0).map(IntService(_)))
-        val stringService: ULayer[StringService] =
-          ZLayer(Ref.make("Hello").map(StringService(_)).debug("MAKING"))
-
-        def customTest(int: Int) =
-          test(s"test $int") {
-            for {
-              ss <- ZIO.service[StringService]
-              _ <- ZIO.debug(s"StringService: $ss")
-              x   <- addOne
-              str <- appendBang
-            } yield assertTrue(x == int && str == s"Hello!")
+        val myTest = test("provides some") {
+          ZIO.environment[Int with String].map { env =>
+            assertTrue(env.get[String].toInt == env.get[Int])
           }
+        }.provideSomeAuto(stringLayer)
 
-        suite("layers are shared between tests and suites")(
-          suite("suite 1")(
-            customTest(1),
-            customTest(2)
-          ),
-          suite("suite 4")(
-            customTest(3),
-            customTest(4)
-          )
-        )
-          .provideSomeSharedAuto(intService)
-          .provide(stringService) @@ TestAspect.sequential
-      } @@ TestAspect.exceptScala3
+        myTest.provide(ZLayer.succeed(10))
+      }
     )
 
   object TestLayer {

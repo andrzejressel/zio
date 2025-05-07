@@ -23,12 +23,12 @@ class SpecLayerMacros(val c: blackbox.Context) extends LayerMacroUtils[blackbox.
 
   def provideSomeSharedImpl[R0: c.WeakTypeTag, R: c.WeakTypeTag, E](
     layer: c.Expr[ZLayer[_, E, _]]*
-  ): c.Expr[Spec[R0, E]] =
-    {
-      val t = provideBaseImpl[ZSpec, R0, R, E, TestSuccess](layer, "provideSomeLayerShared", ProvideMethod.ProvideSomeShared)
+  ): c.Expr[Spec[R0, E]] = {
+    val t =
+      provideBaseImpl[ZSpec, R0, R, E, TestSuccess](layer, "provideSomeLayerShared", ProvideMethod.ProvideSomeShared)
 //      c.abort(c.enclosingPosition, s"tree: ${t.tree}")
-      t
-    }
+    t
+  }
 
   def validate[Provided: c.WeakTypeTag, Required: c.WeakTypeTag](spec: c.Tree): c.Tree = {
 

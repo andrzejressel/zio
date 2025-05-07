@@ -16,7 +16,7 @@
 
 package zio
 
-import zio.internal.macros.LayerMacros
+import zio.internal.macros.{LayerMacros, LayerWhiteboxMacros}
 
 private[zio] trait ZIOVersionSpecific[-R, +E, +A] { self: ZIO[R, E, A] =>
 
@@ -34,6 +34,25 @@ private[zio] trait ZIOVersionSpecific[-R, +E, +A] { self: ZIO[R, E, A] =>
    */
   def provideSome[R0]: ProvideSomeLayerPartiallyApplied[R0, R, E, A] =
     new ProvideSomeLayerPartiallyApplied[R0, R, E, A](self)
+
+  /**
+   * Equivalent to [[provideSome]], but does not require providing the remainder
+   * type
+   *
+   * {{{
+   * val clockLayer: ZLayer[Any, Nothing, Clock] = ???
+   *
+   * val zio: ZIO[Clock with Random, Nothing, Unit] = ???
+   *
+   * val zio2 = zio.provideSome(clockLayer) // Inferred type is ZIO[Random, Nothing, Unit]
+   * }}}
+   *
+   * Note for Intellij users: By default, Intellij will not show correct type on
+   * hover. To fix this enable `Use types reported by Scala compiler
+   * (experimental)` in `Settings | Languages & Frameworks | Scala | Editor`
+   */
+  final def provideSomeAuto[E1 >: E](layer: ZLayer[_, E1, _]*): ZIO[_, E1, A] =
+    macro LayerWhiteboxMacros.provideSomeAutoImpl[ZIO, R, E1, A]
 
   /**
    * Automatically assembles a layer for the ZIO effect.

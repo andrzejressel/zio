@@ -97,8 +97,6 @@ private[test] trait SpecVersionSpecific[-R, +E] { self: Spec[R, E] =>
   final def provideSomeAuto[E1 >: E](layer: ZLayer[_, E1, _]*): Spec[_, E1] =
     macro SpecLayerWhiteboxMacros.provideSomeAutoImpl[R, E1]
 
-  final def provideSomeSharedAuto[E1 >: E](layer: ZLayer[_, E1, _]*): Spec[_, E1] =
-    macro SpecLayerWhiteboxMacros.provideSomeSharedAutoImpl[R, E1]
 }
 
 final class ProvideSomePartiallyApplied[R0, -R, +E](val self: Spec[R, E]) extends AnyVal {
