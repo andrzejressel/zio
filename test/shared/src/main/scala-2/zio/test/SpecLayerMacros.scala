@@ -3,7 +3,6 @@ package zio.test
 import zio._
 import zio.internal.TerminalRendering
 import zio.internal.macros.{LayerMacroUtils, ProvideMethod}
-import zio.internal.macros.ProvideMethod.Provide
 
 import scala.reflect.macros.blackbox
 
