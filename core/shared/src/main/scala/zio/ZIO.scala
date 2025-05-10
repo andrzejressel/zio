@@ -1275,6 +1275,9 @@ sealed trait ZIO[-R, +E, +A]
   )(implicit trace: Trace): ZIO[R0, E1, A] =
     ZIO.scopedWith(scope => layer.build(scope).flatMap(r => self.provideEnvironment(r)))
 
+  def forceConversion[R0]: ZIO[R0, E, A] =
+    self.asInstanceOf[ZIO[R0, E, A]]
+
   /**
    * Transforms the environment being provided to this effect with the specified
    * function.

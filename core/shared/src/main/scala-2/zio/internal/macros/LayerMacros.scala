@@ -9,7 +9,7 @@ import scala.reflect.macros.blackbox
 private[zio] class LayerMacros(val c: blackbox.Context) extends LayerMacroUtils[blackbox.Context] {
   import c.universe._
 
-  def validate[Provided: WeakTypeTag, Required: WeakTypeTag](zio: c.Tree): c.Tree = {
+  def validate[Provided: WeakTypeTag, Required: WeakTypeTag](zio: c.Tree)(s: c.Tree): c.Tree = {
 
     val required = getRequirements[Required]
     val provided = getRequirements[Provided]
@@ -18,7 +18,7 @@ private[zio] class LayerMacros(val c: blackbox.Context) extends LayerMacroUtils[
       required.toSet -- provided.toSet
 
     if (missing.nonEmpty) {
-      val message = TerminalRendering.missingLayersForZIOApp(missing.map(_.toString))
+      val message = TerminalRendering.missingLayersForZIOApp(missing.map(_.toString) ++ Seq(required.toString()) ++ Seq(provided.toString()) ++ Seq(zio.toString()))
       c.abort(c.enclosingPosition, message)
     }
 

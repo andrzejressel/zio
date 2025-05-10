@@ -1950,7 +1950,8 @@ object ZIOSpec extends ZIOBaseSpec {
     test("provideSomeAuto") {
       val clockLayer: ZLayer[Any, Nothing, Clock]    = ZLayer.succeed(Clock.ClockLive)
       val zio: ZIO[Clock with Random, Nothing, Unit] = ZIO.unit
-      val _: ZIO[Random, Nothing, Unit]              = zio.provideSomeAuto(clockLayer)
+      val a              = zio.provideSomeAuto(clockLayer)
+      val _: ZIO[String, Nothing, Unit] = a
       assertCompletes
     },
     test("provideSomeLayer") {
