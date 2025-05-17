@@ -9,7 +9,7 @@ import scala.reflect.macros.blackbox
 private[zio] class LayerMacros(val c: blackbox.Context) extends LayerMacroUtils[blackbox.Context] {
   import c.universe._
 
-  def validate[Provided: WeakTypeTag, Required: WeakTypeTag](zio: c.Tree)(s: c.Tree): c.Tree = {
+  def validate[Provided: WeakTypeTag, Required: WeakTypeTag](zio: c.Tree): c.Tree = {
 
     val required = getRequirements[Required]
     val provided = getRequirements[Provided]

@@ -153,7 +153,7 @@ private[zio] trait LayerMacroUtils[C <: scala.reflect.macros.blackbox.Context] {
   ): Expr[F[_, E, A]] = {
     val tree = constructLayerTree[R](layers, provideMethod, RemainderMethod.Inferred)
     c.Expr[F[_, E, A]](
-      c.typecheck(q"implicit val s: Int = 1; ${c.prefix}.${TermName(method)}($tree).forceConversion")
+      c.typecheck(q"ZIOWrapper(${c.prefix}.${TermName(method)}($tree))")
     ) // Ensure the tree is type-checked. This seems to be required for whitebox macros.
   }
 

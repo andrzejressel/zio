@@ -200,4 +200,9 @@ private[zio] trait ZIOCompanionVersionSpecific {
    */
   def succeedBlocking[A](a: => A)(implicit trace: Trace): UIO[A] =
     ZIO.blocking(ZIO.succeed(a))
+
+  implicit def validateEnv2[R, E, A](zio: ZIOWrapper[R, E, A]): ZIO[R, E, A] =
+    zio.zio
+//    macro internal.macros.LayerMacros.validate[R1, R]
+
 }

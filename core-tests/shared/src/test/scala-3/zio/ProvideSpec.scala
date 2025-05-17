@@ -1,6 +1,6 @@
 package zio
 
-import zio.test._
+import zio.test.*
 
 object ProvideSpec extends ZIOBaseSpec {
 

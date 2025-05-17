@@ -1948,10 +1948,13 @@ object ZIOSpec extends ZIOBaseSpec {
       assertCompletes
     },
     test("provideSomeAuto") {
+      import ZIO.validateEnv2
       val clockLayer: ZLayer[Any, Nothing, Clock]    = ZLayer.succeed(Clock.ClockLive)
       val zio: ZIO[Clock with Random, Nothing, Unit] = ZIO.unit
-      val a              = zio.provideSomeAuto(clockLayer)
-      val _: ZIO[String, Nothing, Unit] = a
+      val a                                          = zio.provideSomeAuto(clockLayer)
+      val _                                          = a.map(_ => ())
+      def abc(): ZIO[Random, Nothing, Unit]          = a
+      val _                                          = abc()
       assertCompletes
     },
     test("provideSomeLayer") {

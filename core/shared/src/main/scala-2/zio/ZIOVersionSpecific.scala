@@ -51,8 +51,8 @@ private[zio] trait ZIOVersionSpecific[-R, +E, +A] { self: ZIO[R, E, A] =>
    * hover. To fix this enable `Use types reported by Scala compiler
    * (experimental)` in `Settings | Languages & Frameworks | Scala | Editor`
    */
-  final def provideSomeAuto[E1 >: E](layer: ZLayer[_, E1, _]*): ZIO[_, E1, A] =
-    macro LayerWhiteboxMacros.provideSomeAutoImpl[ZIO, R, E1, A]
+  final def provideSomeAuto[E1 >: E](layer: ZLayer[_, E1, _]*): ZIOWrapper[_, E1, A] =
+    macro LayerWhiteboxMacros.provideSomeAutoImpl[ZIOWrapper, R, E1, A]
 
   /**
    * Automatically assembles a layer for the ZIO effect.

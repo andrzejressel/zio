@@ -34,6 +34,8 @@ cd zio
 git clone git@github.com:your-user-name/zio.git .
 ```
 
+[Windows users must setup Git to use Unix line endings](https://docs.github.com/en/get-started/git-basics/configuring-git-to-handle-line-endings).
+
 Then you need to add a remote upstream to the original ZIO project repository and fetch tags that will be used for proper project versioning by the build tool:
 
 ```bash
